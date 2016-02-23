@@ -3,7 +3,10 @@ package org.jcontinue.continuation;
 import org.jcontinue.analyzer.ObjectFrameItem;
 import org.jcontinue.analyzer.ObjectFrameItemClassNameSupplier;
 import org.jcontinue.analyzer.ObjectFrameItemFactory;
+import org.jcontinue.analyzer.SimpleObjectFrameItemFactory;
+import org.jcontinue.analyzer.StandardMethodAnalyzer;
 import org.jcontinue.base.ClassBodyResolver;
+import org.jcontinue.base.ClasspathClassBodyResolver;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -34,6 +37,28 @@ public class ContinuationClassTransformerClassLoader extends ClassLoader {
             ContinuationClassTransformerRegistry registry, ContinuationMethodTransformer methodTransformer,
             ObjectFrameItemFactory objectFactory, ObjectFrameItemClassNameSupplier classNameSupplier) {
         this(null, classBodyResolver, registry, methodTransformer, objectFactory, classNameSupplier);
+    }
+
+    public ContinuationClassTransformerClassLoader(ClassLoader parent, ClassBodyResolver classBodyResolver) {
+        super(parent);
+        SimpleObjectFrameItemFactory objectFactory = new SimpleObjectFrameItemFactory(classBodyResolver);
+        StandardMethodAnalyzer methodAnalyzer = new StandardMethodAnalyzer(objectFactory);
+        SimpleContinuationClassTransformerRegistry registry = new SimpleContinuationClassTransformerRegistry();
+        StandardContinuationMethodTransformer methodTransformer =
+                new StandardContinuationMethodTransformer(registry, methodAnalyzer, objectFactory);
+        this.classBodyResolver = classBodyResolver;
+        this.registry = registry;
+        this.methodTransformer = methodTransformer;
+        this.objectFactory = objectFactory;
+        this.classNameSupplier = objectFactory;
+    }
+
+    public ContinuationClassTransformerClassLoader(ClassLoader parent) {
+        this(parent, new ClasspathClassBodyResolver());
+    }
+
+    public ContinuationClassTransformerClassLoader() {
+        this(null);
     }
 
     @Override

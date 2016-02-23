@@ -1,28 +1,13 @@
 package org.jcontinue.continuation.test;
 
 import com.google.common.base.Throwables;
-import org.jcontinue.analyzer.MethodAnalyzer;
-import org.jcontinue.analyzer.ObjectFrameItemClassNameSupplier;
-import org.jcontinue.analyzer.ObjectFrameItemFactory;
-import org.jcontinue.analyzer.SimpleObjectFrameItemFactory;
-import org.jcontinue.analyzer.StandardMethodAnalyzer;
-import org.jcontinue.base.ClassBodyResolver;
-import org.jcontinue.base.ClasspathClassBodyResolver;
 import org.jcontinue.continuation.Continuation;
 import org.jcontinue.continuation.ContinuationClassTransformerClassLoader;
-import org.jcontinue.continuation.ContinuationClassTransformerRegistry;
-import org.jcontinue.continuation.ContinuationMethodTransformer;
-import org.jcontinue.continuation.SimpleContinuationClassTransformerRegistry;
-import org.jcontinue.continuation.StandardContinuationMethodTransformer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -40,8 +25,7 @@ public class StandardContinuationMethodTransformerTest {
 
     @Before
     public void setUp() {
-        BeanFactory beanFactory = new AnnotationConfigApplicationContext(Config.class);
-        continuationClassLoader = beanFactory.getBean(ClassLoader.class);
+        continuationClassLoader = new ContinuationClassTransformerClassLoader();
     }
 
     @Test
@@ -123,48 +107,5 @@ public class StandardContinuationMethodTransformerTest {
             Assert.assertTrue(context.isFinished());
             Assert.assertTrue(context.isSucceed());
         }
-    }
-
-
-    @Configuration
-    public static class Config {
-
-        @Bean
-        public ClassLoader continuationClassLoader() {
-            return new ContinuationClassTransformerClassLoader(classBodyResolver(), registry(),
-                    continuationMethodTransformer(), objectFrameItemFactory(), objectFrameItemClassNameSupplier());
-        }
-
-        @Bean
-        public ClassBodyResolver classBodyResolver() {
-            return new ClasspathClassBodyResolver();
-        }
-
-        @Bean
-        public ContinuationClassTransformerRegistry registry() {
-            return new SimpleContinuationClassTransformerRegistry();
-        }
-
-        @Bean
-        public ContinuationMethodTransformer continuationMethodTransformer() {
-            return new StandardContinuationMethodTransformer(registry(), methodAnalyzer(),
-                    objectFrameItemClassNameSupplier());
-        }
-
-        @Bean
-        public MethodAnalyzer methodAnalyzer() {
-            return new StandardMethodAnalyzer(objectFrameItemFactory());
-        }
-
-        @Bean
-        public ObjectFrameItemFactory objectFrameItemFactory() {
-            return new SimpleObjectFrameItemFactory(classBodyResolver());
-        }
-
-        @Bean
-        public ObjectFrameItemClassNameSupplier objectFrameItemClassNameSupplier() {
-            return (ObjectFrameItemClassNameSupplier) objectFrameItemFactory();
-        }
-
     }
 }
