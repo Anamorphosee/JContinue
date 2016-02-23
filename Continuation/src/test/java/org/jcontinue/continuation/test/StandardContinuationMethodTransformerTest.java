@@ -14,9 +14,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by mylenium on 07.02.16.
- */
 public class StandardContinuationMethodTransformerTest {
 
     private static final Logger log = LoggerFactory.getLogger(StandardContinuationMethodTransformerTest.class);
