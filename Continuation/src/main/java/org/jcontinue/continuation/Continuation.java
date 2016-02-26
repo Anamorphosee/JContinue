@@ -2,7 +2,9 @@ package org.jcontinue.continuation;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class Continuation {
@@ -36,25 +38,28 @@ public class Continuation {
         private final Throwable exception;
         private final List<__SavedFrameContext> frames;
         private final Task task;
+        private final Map<Local<?>, Object> locals;
 
-        private Context() {
+        private Context(Map<Local<?>, Object> locals) {
             finished = true;
             succeed = true;
             exception = null;
             frames = null;
             task = null;
+            this.locals = locals;
         }
 
-        private Context(Throwable exception) {
+        private Context(Throwable exception, Map<Local<?>, Object> locals) {
             Objects.requireNonNull(exception);
             finished = true;
             succeed = false;
             this.exception = exception;
             frames = null;
             task = null;
+            this.locals = locals;
         }
 
-        private Context(List<__SavedFrameContext> frames, Task task) {
+        private Context(List<__SavedFrameContext> frames, Task task, Map<Local<?>, Object> locals) {
             Objects.requireNonNull(frames);
             Objects.requireNonNull(task);
             finished = false;
@@ -62,12 +67,40 @@ public class Continuation {
             exception = null;
             this.frames = frames;
             this.task = task;
+            this.locals = locals;
+        }
+
+        public <T> T get(Local<T> local) {
+            return (T) locals.get(local);
+        }
+
+        public <T> void set(Local<? super T> local, T value) {
+            locals.put(local, value);
+        }
+    }
+
+    public static class Local<T> {
+        public T get() {
+            ThreadContext threadContext = getThreadContext();
+            if (threadContext == null) {
+                throw new IllegalStateException("Continuation.Local is used out of Continuation context");
+            }
+            return (T) threadContext.locals.get(this);
+        }
+
+        public void set(T value) {
+            ThreadContext threadContext = getThreadContext();
+            if (threadContext == null) {
+                throw new IllegalStateException("Continuation.Local is used out of Continuation context");
+            }
+            threadContext.locals.put(this, value);
         }
     }
 
     public static Context perform(Task task) {
         ThreadContext threadContext = new ThreadContext();
         threadContext.status = ThreadContextStatus.RUNNING;
+        threadContext.locals = new HashMap<>();
         return perform(threadContext, task);
     }
 
@@ -95,6 +128,7 @@ public class Continuation {
         ThreadContext threadContext = new ThreadContext();
         threadContext.savedFrameContexts = new ArrayList<>(context.frames);
         threadContext.status = ThreadContextStatus.RESUMING;
+        threadContext.locals = new HashMap<>(context.locals);
         return perform(threadContext, context.task);
     }
 
@@ -185,6 +219,7 @@ public class Continuation {
         private ThreadContextStatus status;
         private List<__SavedFrameContext> savedFrameContexts;
         private Object nextCalledObject;
+        private Map<Local<?>, Object> locals;
     }
 
     private enum ThreadContextStatus {
@@ -198,15 +233,15 @@ public class Continuation {
         try {
             task.perform();
         } catch (Throwable exception) {
-            return new Context(exception);
+            return new Context(exception, threadContext.locals);
         } finally {
             threadContextStack.remove(lastItemIndex);
         }
         if (threadContext.status == ThreadContextStatus.RUNNING) {
-            return new Context();
+            return new Context(threadContext.locals);
         }
         if (threadContext.status == ThreadContextStatus.SUSPENDING) {
-            return new Context(threadContext.savedFrameContexts, task);
+            return new Context(threadContext.savedFrameContexts, task, threadContext.locals);
         }
         throw new ContinuationException("invalid threadContext.status " + threadContext.status);
     }
