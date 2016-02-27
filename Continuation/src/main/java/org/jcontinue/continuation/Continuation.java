@@ -1,6 +1,8 @@
 package org.jcontinue.continuation;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -204,6 +206,33 @@ public class Continuation {
         }
         threadContext.nextCalledObject = currentCalledObject;
         threadContext.savedFrameContexts.add(savedFrameContext);
+    }
+
+    public static Object __transformedReflectionMethodInvocation(Method method, Object owner, Object[] args)
+            throws InvocationTargetException, IllegalAccessException {
+        int pointcutNumber = __startingMethod();
+        if (pointcutNumber == 1) {
+            __TransformedReflectionMethodSavedContext savedFrameContext =
+                    (__TransformedReflectionMethodSavedContext) __getSavedFrameContext();
+            method = savedFrameContext.method;
+            owner = savedFrameContext.owner;
+            args = savedFrameContext.args;
+        }
+        Object result = method.invoke(owner, args);
+        if (__finishedMethod()) {
+            __TransformedReflectionMethodSavedContext savedContext = new __TransformedReflectionMethodSavedContext();
+            savedContext.method = method;
+            savedContext.args = args;
+            savedContext.pointcut = 1;
+            __addSavedFrameContext(savedContext, "owner", null);
+        }
+        return result;
+    }
+
+    public static class __TransformedReflectionMethodSavedContext extends __SavedFrameContext {
+        public Method method;
+        public Object owner;
+        public Object[] args;
     }
 
     // private methods

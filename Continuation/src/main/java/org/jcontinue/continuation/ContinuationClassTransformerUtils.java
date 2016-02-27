@@ -268,8 +268,12 @@ public class ContinuationClassTransformerUtils {
             ObjectFrameItemClassNameSupplier classNameSupplier) {
         String asmMethodDescriptor = getAsmMethodDescriptor(invocationInstruction);
         boolean invocationStatic = isInvocationStatic(invocationInstruction);
+        boolean reflectionMethodInvocation = isReflectionMethodInvocation(invocationInstruction);
         int argumentLength = 0;
         PointcutFrameStructure result = new PointcutFrameStructure();
+        if (reflectionMethodInvocation) {
+            result.getInvocationArgumentTypes().add(reflectMethodAsmType);
+        }
         for (Type argumentType : Type.getArgumentTypes(asmMethodDescriptor)) {
             argumentLength += argumentType.getSize();
             result.getInvocationArgumentTypes().add(argumentType);
@@ -313,7 +317,7 @@ public class ContinuationClassTransformerUtils {
                 result.getStack().add(structureItem);
             }
         }
-        if (!invocationStatic) {
+        if (!invocationStatic && !reflectionMethodInvocation) {
             FrameItem frameItem = invocationFrame.getStack().get(invocationObjectStackIndex);
             if (!AnalyzerUtils.isInitializedReference(frameItem)) {
                 throw new IllegalStateException("frameItem cannot be " + frameItem);
@@ -336,6 +340,7 @@ public class ContinuationClassTransformerUtils {
         }
         result.setMethodStatic(methodStatic);
         result.setInvocationReturnType(Type.getReturnType(asmMethodDescriptor));
+        result.setReflectionMethodInvocation(reflectionMethodInvocation);
         return result;
     }
 
@@ -644,6 +649,44 @@ public class ContinuationClassTransformerUtils {
     private static boolean isStorable(FrameItem frameItem) {
         return !frameItem.equals(FrameItem.TOP) && !frameItem.equals(FrameItem.NULL) &&
                 !AnalyzerUtils.isUninitializedReference(frameItem);
+    }
+
+    private static final String reflectMethodClassInternalName;
+    private static final String reflectMethodClassInvokeMethodName;
+    private static final String reflectMethodClassInvokeMethodDescriptor;
+    private static Type reflectMethodAsmType;
+
+    static {
+        reflectMethodClassInternalName = Type.getInternalName(Method.class);
+        reflectMethodClassInvokeMethodName = "invoke";
+        try {
+            reflectMethodClassInvokeMethodDescriptor =
+                    Type.getMethodDescriptor(Method.class.getMethod(reflectMethodClassInvokeMethodName, Object.class,
+                            Object[].class));
+        } catch (NoSuchMethodException e) {
+            throw Throwables.propagate(e);
+        }
+        reflectMethodAsmType = Type.getType(Method.class);
+    }
+
+    private static boolean isReflectionMethodInvocation(AbstractInsnNode invocationInstruction) {
+        if (invocationInstruction.getType() != AbstractInsnNode.METHOD_INSN) {
+            return false;
+        }
+        MethodInsnNode methodInvocationInstruction = (MethodInsnNode) invocationInstruction;
+        if (methodInvocationInstruction.getOpcode() != Opcodes.INVOKEVIRTUAL) {
+            return false;
+        }
+        if (!methodInvocationInstruction.owner.equals(reflectMethodClassInternalName)) {
+            return false;
+        }
+        if (!methodInvocationInstruction.name.equals(reflectMethodClassInvokeMethodName)) {
+            return false;
+        }
+        if (!methodInvocationInstruction.desc.equals(reflectMethodClassInvokeMethodDescriptor)) {
+            return false;
+        }
+        return true;
     }
 
 }

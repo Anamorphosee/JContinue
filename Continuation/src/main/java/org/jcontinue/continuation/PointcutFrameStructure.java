@@ -16,6 +16,7 @@ public class PointcutFrameStructure {
     private final List<Type> invocationArgumentTypes = new ArrayList<>();
     private boolean methodStatic;
     private Type invocationReturnType;
+    private boolean reflectionMethodInvocation;
 
     public Map<Integer, PointcutFrameStructureItem> getLocals() {
         return locals;
@@ -67,5 +68,13 @@ public class PointcutFrameStructure {
 
     public void setInvocationReturnType(Type invocationReturnType) {
         this.invocationReturnType = invocationReturnType;
+    }
+
+    public boolean isReflectionMethodInvocation() {
+        return reflectionMethodInvocation;
+    }
+
+    public void setReflectionMethodInvocation(boolean reflectionMethodInvocation) {
+        this.reflectionMethodInvocation = reflectionMethodInvocation;
     }
 }

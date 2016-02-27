@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,14 @@ public class StandardContinuationMethodTransformerTest {
     public void test2() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InstantiationException, InvocationTargetException {
         Class<?> testClass = continuationClassLoader.loadClass(Test2.class.getName());
+        Object testInst = testClass.newInstance();
+        testClass.getMethod("start").invoke(testInst);
+    }
+
+    @Test
+    public void testReflectionInvoke() throws ClassNotFoundException, IllegalAccessException, InstantiationException,
+            NoSuchMethodException, InvocationTargetException {
+        Class<?> testClass = continuationClassLoader.loadClass(ReflectionInvokeTest.class.getName());
         Object testInst = testClass.newInstance();
         testClass.getMethod("start").invoke(testInst);
     }
@@ -103,6 +112,23 @@ public class StandardContinuationMethodTransformerTest {
             }
             Assert.assertTrue(context.isFinished());
             Assert.assertTrue(context.isSucceed());
+        }
+    }
+
+    public static class ReflectionInvokeTest {
+        public void start() {
+            Continuation.Context context = Continuation.perform(() -> {
+                Method method = ReflectionInvokeTest.class.getMethod("m");
+                method.invoke(ReflectionInvokeTest.this);
+            });
+            Assert.assertFalse(context.isFinished());
+            context = Continuation.resume(context);
+            Assert.assertTrue(context.isFinished());
+            Assert.assertTrue(context.isSucceed());
+        }
+
+        public void m() {
+            Continuation.suspend();
         }
     }
 }

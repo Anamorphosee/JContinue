@@ -144,6 +144,12 @@ public class StandardContinuationMethodTransformer implements ContinuationMethod
             auxiliaryInstructions.addAll(Lists.newArrayList(saveInstructions.iterator()));
             method.instructions.insert(pointcutInvocation, saveInstructions);
 
+            if (pointcutStructure.isReflectionMethodInvocation()) {
+                method.instructions.insert(pointcutInvocation,
+                        AsmUtils.getInvocationInstruction(transformedReflectionInvocationMethod));
+                method.instructions.remove(pointcutInvocation);
+            }
+
             String savedContextClassName = pointcutStructure.getSavedFrameContextClassName();
             if (!auxiliaryClasses.containsKey(savedContextClassName)) {
                 byte[] auxiliaryClassBody = ContinuationClassTransformerUtils.getSavedFrameContextClassBody(
@@ -222,10 +228,13 @@ public class StandardContinuationMethodTransformer implements ContinuationMethod
     }
 
     private static final Method finishedMethod;
+    private static final Method transformedReflectionInvocationMethod;
 
     static {
         try {
             finishedMethod = Continuation.class.getMethod("__finishedMethod");
+            transformedReflectionInvocationMethod = Continuation.class.getMethod(
+                    "__transformedReflectionMethodInvocation", Method.class, Object.class, Object[].class);
         } catch (NoSuchMethodException e) {
             throw Throwables.propagate(e);
         }
