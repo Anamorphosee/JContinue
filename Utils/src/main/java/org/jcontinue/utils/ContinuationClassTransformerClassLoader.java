@@ -1,4 +1,4 @@
-package org.jcontinue.continuation;
+package org.jcontinue.utils;
 
 import org.jcontinue.analyzer.ObjectFrameItem;
 import org.jcontinue.analyzer.ObjectFrameItemClassNameSupplier;
@@ -7,6 +7,10 @@ import org.jcontinue.analyzer.SimpleObjectFrameItemFactory;
 import org.jcontinue.analyzer.StandardMethodAnalyzer;
 import org.jcontinue.base.ClassBodyResolver;
 import org.jcontinue.base.ClasspathClassBodyResolver;
+import org.jcontinue.continuation.ContinuationClassTransformerRegistry;
+import org.jcontinue.continuation.ContinuationMethodTransformer;
+import org.jcontinue.continuation.SimpleContinuationClassTransformerRegistry;
+import org.jcontinue.continuation.StandardContinuationMethodTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;

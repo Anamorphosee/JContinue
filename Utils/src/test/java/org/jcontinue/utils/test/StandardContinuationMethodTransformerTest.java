@@ -1,8 +1,8 @@
-package org.jcontinue.continuation.test;
+package org.jcontinue.utils.test;
 
 import com.google.common.base.Throwables;
 import org.jcontinue.continuation.Continuation;
-import org.jcontinue.continuation.ContinuationClassTransformerClassLoader;
+import org.jcontinue.utils.ContinuationClassTransformerClassLoader;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

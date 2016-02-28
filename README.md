@@ -3,10 +3,10 @@ Java [Continuation](https://en.wikipedia.org/wiki/Continuation) Library
 
 ## Usage example
 ```java
-package org.jcontinue.continuation.test;
+package org.jcontinue.utils.test;
 
 import org.jcontinue.continuation.Continuation;
-import org.jcontinue.continuation.ContinuationClassTransformerClassLoader;
+import org.jcontinue.utils.ContinuationClassTransformerClassLoader;
 import org.jcontinue.continuation.Task;
 
 public class ReadmeExample {

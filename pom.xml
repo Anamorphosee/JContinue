@@ -11,6 +11,7 @@
     <modules>
         <module>Analyzer</module>
         <module>Continuation</module>
+        <module>Utils</module>
     </modules>
 
     <properties>
