@@ -229,12 +229,6 @@ public class Continuation {
         return result;
     }
 
-    public static class __TransformedReflectionMethodSavedContext extends __SavedFrameContext {
-        public Method method;
-        public Object owner;
-        public Object[] args;
-    }
-
     // private methods
 
     private static ThreadLocal<List<ThreadContext>> threadContextStack = new ThreadLocal<List<ThreadContext>>() {

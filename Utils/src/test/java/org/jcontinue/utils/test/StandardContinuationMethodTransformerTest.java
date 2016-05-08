@@ -1,6 +1,7 @@
 package org.jcontinue.utils.test;
 
 import com.google.common.base.Throwables;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jcontinue.continuation.Continuation;
 import org.jcontinue.utils.ContinuationClassTransformerClassLoader;
 import org.junit.Assert;
@@ -117,8 +118,13 @@ public class StandardContinuationMethodTransformerTest {
 
     public static class ReflectionInvokeTest {
         public void start() {
+            MutableInt counter = new MutableInt(1);
             Continuation.Context context = Continuation.perform(() -> {
                 Method method = ReflectionInvokeTest.class.getMethod("m");
+                if (counter.intValue() < 1) {
+                    Assert.fail();
+                }
+                counter.decrement();
                 method.invoke(ReflectionInvokeTest.this);
             });
             Assert.assertFalse(context.isFinished());
