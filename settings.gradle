@@ -1,0 +1,8 @@
+rootProject.name = 'base'
+include ':analyzer'
+include ':continuation'
+include ':utils'
+
+project(':analyzer').projectDir = "$rootDir/analyzer" as File
+project(':continuation').projectDir = "$rootDir/continuation" as File
+project(':utils').projectDir = "$rootDir/utils" as File
