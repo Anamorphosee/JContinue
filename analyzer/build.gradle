@@ -1,8 +1,0 @@
-
-description = ''
-dependencies {
-    compile rootProject
-
-    testCompile group: 'org.ow2.asm', name: 'asm-analysis', version: asmVersion
-    testCompile group: 'org.ow2.asm', name: 'asm-util', version: asmVersion
-}

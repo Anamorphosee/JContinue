@@ -27,3 +27,24 @@ allprojects  {
         testCompile group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
     }
 }
+
+project(':analyzer') {
+    dependencies {
+        compile rootProject
+
+        testCompile group: 'org.ow2.asm', name: 'asm-analysis', version: asmVersion
+        testCompile group: 'org.ow2.asm', name: 'asm-util', version: asmVersion
+    }
+}
+
+project(':continuation') {
+    dependencies {
+        compile project(':analyzer')
+    }
+}
+
+project(':utils') {
+    dependencies {
+        compile project(':continuation')
+    }
+}
